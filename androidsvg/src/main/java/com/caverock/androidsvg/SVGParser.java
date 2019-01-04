@@ -96,7 +96,7 @@ class SVGParser
 
    // SVG parser
    private SVG               svgDocument = null;
-   private SVG.SvgContainer  currentElement = null;
+   private SvgContainer  currentElement = null;
 
    // For handling elements we don't support
    private boolean   ignoring = false;

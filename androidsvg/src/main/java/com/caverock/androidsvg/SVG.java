@@ -26,6 +26,7 @@ import android.graphics.RectF;
 import android.util.Log;
 
 import com.caverock.androidsvg.CSSParser.Ruleset;
+import com.caverock.androidsvg.element.Group;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -107,7 +108,7 @@ public class SVG
    private Map<String, SvgElementBase> idToElementMap = new HashMap<>();
 
 
-   enum Unit
+   public enum Unit
    {
       px,
       em,
@@ -1027,7 +1028,7 @@ public class SVG
    // Object sub-types used in the SVG object tree
 
 
-   static class  Box
+   public static class  Box
    {
       float  minX, minY, width, height;
 
@@ -1553,179 +1554,6 @@ public class SVG
    //===============================================================================
 
 
-   // Any object that can be part of the tree
-   static class SvgObject
-   {
-      SVG           document;
-      SvgContainer  parent;
-
-      String  getNodeName()
-      {
-         return "";
-      }
-   }
-
-
-   // Any object in the tree that corresponds to an SVG element
-   static abstract class SvgElementBase extends SvgObject
-   {
-      String        id = null;
-      Boolean       spacePreserve = null;
-      Style         baseStyle = null;   // style defined by explicit style attributes in the element (eg. fill="black")
-      Style         style = null;       // style expressed in a 'style' attribute (eg. style="fill:black")
-      List<String>  classNames = null;  // contents of the 'class' attribute
-
-      public String  toString()
-      {
-         return this.getNodeName();
-      }
-   }
-
-
-   // Any object in the tree that corresponds to an SVG element
-   static abstract class SvgElement extends SvgElementBase
-   {
-      Box     boundingBox = null;
-   }
-
-
-   // Any element that can appear inside a <switch> element.
-   interface SvgConditional
-   {
-      void         setRequiredFeatures(Set<String> features);
-      Set<String>  getRequiredFeatures();
-      void         setRequiredExtensions(String extensions);
-      String       getRequiredExtensions();
-      void         setSystemLanguage(Set<String> languages);
-      Set<String>  getSystemLanguage();
-      void         setRequiredFormats(Set<String> mimeTypes);
-      Set<String>  getRequiredFormats();
-      void         setRequiredFonts(Set<String> fontNames);
-      Set<String>  getRequiredFonts();
-   }
-
-
-   // Any element that can appear inside a <switch> element.
-   static abstract class  SvgConditionalElement extends SvgElement implements SvgConditional
-   {
-      Set<String>  requiredFeatures = null;
-      String       requiredExtensions = null;
-      Set<String>  systemLanguage = null;
-      Set<String>  requiredFormats = null;
-      Set<String>  requiredFonts = null;
-
-      @Override
-      public void setRequiredFeatures(Set<String> features) { this.requiredFeatures = features; }
-      @Override
-      public Set<String> getRequiredFeatures() { return this.requiredFeatures; }
-      @Override
-      public void setRequiredExtensions(String extensions) { this.requiredExtensions = extensions; }
-      @Override
-      public String getRequiredExtensions() { return this.requiredExtensions; }
-      @Override
-      public void setSystemLanguage(Set<String> languages) { this.systemLanguage = languages; }
-      @Override
-      public Set<String> getSystemLanguage() { return this.systemLanguage; }
-      @Override
-      public void setRequiredFormats(Set<String> mimeTypes) { this.requiredFormats = mimeTypes; }
-      @Override
-      public Set<String> getRequiredFormats() { return this.requiredFormats; }
-      @Override
-      public void setRequiredFonts(Set<String> fontNames) { this.requiredFonts = fontNames; }
-      @Override
-      public Set<String> getRequiredFonts() { return this.requiredFonts; }
-   }
-
-
-   interface SvgContainer
-   {
-      List<SvgObject>  getChildren();
-      void             addChild(SvgObject elem) throws SVGParseException;
-   }
-
-
-   static abstract class SvgConditionalContainer extends SvgElement implements SvgContainer, SvgConditional
-   {
-      List<SvgObject>  children = new ArrayList<>();
-
-      Set<String>  requiredFeatures = null;
-      String       requiredExtensions = null;
-      Set<String>  systemLanguage = null;
-      Set<String>  requiredFormats = null;
-      Set<String>  requiredFonts = null;
-
-      @Override
-      public List<SvgObject>  getChildren() { return children; }
-      @Override
-      public void addChild(SvgObject elem) throws SVGParseException  { children.add(elem); }
-
-      @Override
-      public void setRequiredFeatures(Set<String> features) { this.requiredFeatures = features; }
-      @Override
-      public Set<String> getRequiredFeatures() { return this.requiredFeatures; }
-      @Override
-      public void setRequiredExtensions(String extensions) { this.requiredExtensions = extensions; }
-      @Override
-      public String getRequiredExtensions() { return this.requiredExtensions; }
-      @Override
-      public void setSystemLanguage(Set<String> languages) { this.systemLanguage = languages; }
-      @Override
-      public Set<String> getSystemLanguage() { return null; }
-      @Override
-      public void setRequiredFormats(Set<String> mimeTypes) { this.requiredFormats = mimeTypes; }
-      @Override
-      public Set<String> getRequiredFormats() { return this.requiredFormats; }
-      @Override
-      public void setRequiredFonts(Set<String> fontNames) { this.requiredFonts = fontNames; }
-      @Override
-      public Set<String> getRequiredFonts() { return this.requiredFonts; }
-   }
-
-
-   interface HasTransform
-   {
-      void setTransform(Matrix matrix);
-   }
-
-
-   static abstract class SvgPreserveAspectRatioContainer extends SvgConditionalContainer
-   {
-      PreserveAspectRatio  preserveAspectRatio = null;
-   }
-
-
-   static abstract class SvgViewBoxContainer extends SvgPreserveAspectRatioContainer
-   {
-      Box  viewBox;
-   }
-
-
-   static class Svg extends SvgViewBoxContainer
-   {
-      Length  x;
-      Length  y;
-      Length  width;
-      Length  height;
-      public String  version;
-
-      @Override
-      String  getNodeName() { return "svg"; }
-   }
-
-
-   // An SVG element that can contain other elements.
-   static class Group extends SvgConditionalContainer implements HasTransform
-   {
-      Matrix  transform;
-
-      @Override
-      public void setTransform(Matrix transform) { this.transform = transform; }
-
-      @Override
-      String  getNodeName() { return "group"; }
-   }
-
-
    interface NotDirectlyRendered
    {
    }
@@ -1733,7 +1561,7 @@ public class SVG
 
    // A <defs> object contains objects that are not rendered directly, but are instead
    // referenced from other parts of the file.
-   static class Defs extends Group implements NotDirectlyRendered
+   static class Defs extends Group("defs") implements NotDirectlyRendered
    {
       @Override
       String  getNodeName() { return "defs"; }
